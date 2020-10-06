@@ -19,8 +19,14 @@ class Point(object):
         except ValueError:
             raise PointException("Coordinates are not int")
 
+    def len(self):
+        return (self.x ** 2 + self.y ** 2) ** 0.5
+
     def __add__(self, other):
         return Point(self.x + other.x, self.y + other.y)
+
+    def __sub__(self, other):
+        return Point(self.x - other.x, self.y - other.y)
 
     def __mul__(self, num: int):
         return Point(self.x * num, self.y * num)

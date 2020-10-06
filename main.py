@@ -1,6 +1,6 @@
 import sys
 
-from min_disk_checker import MinDiskChecker
+from min_disk_checker import *
 from point import *
 
 if __name__ == '__main__':
@@ -20,14 +20,14 @@ if __name__ == '__main__':
             point = Point.create_from_str(line)
             points.append(point)
         print("POINTS: ", points)
-        if len(coords) <= len(points):
-            print("Is disk minimal? ", MinDiskChecker.is_disk_minimal(coords, points))
-        else:
-            print("ERROR: number of indices is larger then number of points")
+        mdc = MinDiskChecker()
+        print("Is disk minimal? ", mdc.is_disk_minimal(coords, points))
         file.close()
     except IOError:
         print("ERROR: File not accessible")
     except ValueError:
         print("ERROR: Data must be integer")
     except PointException as pe:
-        print("ERROR: " + str(pe))
+        print("Point ERROR: " + str(pe))
+    except MinDiskCheckerException as me:
+        print("MinDiskChecker ERROR: " + str(me))
