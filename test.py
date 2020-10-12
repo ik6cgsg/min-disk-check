@@ -1,16 +1,18 @@
 import unittest
 from min_disk_checker import *
 from point import *
+import warnings
 
 
 class TestMinDiskChecker(unittest.TestCase):
     def setUp(self) -> None:
         self.mdc = MinDiskChecker()
+        warnings.filterwarnings("error")
 
     def test_min_disk_0_points(self):
         points = []
         coords = []
-        self.assertEqual(self.mdc.is_disk_minimal(coords, points), False)
+        self.assertEqual(self.mdc.is_disk_minimal(coords, points), True)
 
     def test_min_disk_1_point_ok(self):
         points = [
@@ -85,7 +87,7 @@ class TestMinDiskChecker(unittest.TestCase):
             Point(2, 4),
             Point(4, 7)
         ]
-        coords = [0, 1, 2]
+        coords = [2, 1, 0]
         self.assertEqual(self.mdc.is_disk_minimal(coords, points), True)
 
     def test_min_disk_3_points_bad_obtuse(self):
@@ -98,3 +100,13 @@ class TestMinDiskChecker(unittest.TestCase):
         ]
         coords = [0, 1, 4]
         self.assertEqual(self.mdc.is_disk_minimal(coords, points), False)
+
+    def test_min_disk_3_points_ok_large_num(self):
+        points = [
+            Point(948904, 106447),
+            Point(344710, 448131),
+            Point(803743, 922708),
+            Point(78651, 108263)
+        ]
+        coords = [2, 3, 0]
+        self.assertEqual(self.mdc.is_disk_minimal(coords, points), True)

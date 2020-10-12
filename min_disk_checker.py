@@ -6,15 +6,15 @@ class MinDiskCheckerException(Exception):
     pass
 
 
-def det(A):
+def det(A) -> int:
     n, _ = numpy.shape(A)
     if n == 1:
-        return A[0, 0]
+        return int(A[0, 0])
     else:
         s = 0
         for i in range(n):
             l = [x for x in range(n) if x != i]
-            s += (-1) ** i * A[0, i] * det(A[1:, l])
+            s += (-1) ** i * int(A[0, i]) * det(A[1:, l])
         return s
 
 
@@ -38,7 +38,7 @@ class MinDiskChecker(object):
             [p0.x ** 2 + p0.y ** 2, p0.x, p0.y, 1],
             [p1.x ** 2 + p1.y ** 2, p1.x, p1.y, 1],
             [p2.x ** 2 + p2.y ** 2, p2.x, p2.y, 1],
-        ], dtype=int)
+        ])
         return det(matrix) >= 0
 
     def _inside(self, p: Point) -> bool:
@@ -72,7 +72,10 @@ class MinDiskChecker(object):
         if len(coords) > 3:
             raise MinDiskCheckerException("Too many indices")
         if len(coords) == 0:
-            return False
+            if len(points) == 0:
+                return True
+            else:
+                return False
         if len(coords) == 1:
             if len(points) == 1:
                 return True

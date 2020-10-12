@@ -19,10 +19,10 @@ if __name__ == '__main__':
         for line in file:
             point = Point.create_from_str(line)
             points.append(point)
+        file.close()
         print("POINTS: ", points)
         mdc = MinDiskChecker()
         print("Is disk minimal? ", mdc.is_disk_minimal(coords, points))
-        file.close()
     except IOError:
         print("ERROR: File not accessible")
     except ValueError:
