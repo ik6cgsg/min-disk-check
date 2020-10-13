@@ -23,23 +23,40 @@ class MinDiskChecker(object):
         self.coords: [int] = []
         self.points: [Point] = []
         self.edge_points: [Point] = []
+        self.sign = None
 
     def _inside_for_2_points(self, p: Point) -> bool:
         p0 = self.edge_points[0]
         p1 = self.edge_points[1]
         return (p.x - p0.x) * (p.x - p1.x) + (p.y - p0.y) * (p.y - p1.y) <= 0
 
+    # Check middle point of p0p1 side
+    def _get_sign_for_3_points(self, p0: Point, p1: Point, p2: Point):
+        p = p1 + p0  # doubled middle of p0p1 side
+        matrix = numpy.array([
+            [p.x ** 2 + p.y ** 2, p.x, p.y, 2],
+            [4 * p0.x ** 2 + 4 * p0.y ** 2, 2 * p0.x, 2 * p0.y, 2],
+            [4 * p1.x ** 2 + 4 * p1.y ** 2, 2 * p1.x, 2 * p1.y, 2],
+            [4 * p2.x ** 2 + 4 * p2.y ** 2, 2 * p2.x, 2 * p2.y, 2],
+        ])  # doubled matrix respectively
+        if det(matrix) < 0:
+            self.sign = 1
+        else:
+            self.sign = -1
+
     def _inside_for_3_points(self, p: Point) -> bool:
         p0 = self.edge_points[0]
         p1 = self.edge_points[1]
         p2 = self.edge_points[2]
+        if self.sign is None:
+            self._get_sign_for_3_points(p0, p1, p2)
         matrix = numpy.array([
             [p.x ** 2 + p.y ** 2, p.x, p.y, 1],
             [p0.x ** 2 + p0.y ** 2, p0.x, p0.y, 1],
             [p1.x ** 2 + p1.y ** 2, p1.x, p1.y, 1],
             [p2.x ** 2 + p2.y ** 2, p2.x, p2.y, 1],
         ])
-        return det(matrix) >= 0
+        return self.sign * det(matrix) <= 0
 
     def _inside(self, p: Point) -> bool:
         if len(self.coords) == 2:
@@ -67,6 +84,7 @@ class MinDiskChecker(object):
         return True
 
     def is_disk_minimal(self, coords: [int], points: [Point]) -> bool:
+        self.sign = None
         if len(coords) > len(points):
             raise MinDiskCheckerException("Number of indices is larger then number of points")
         if len(coords) > 3:
