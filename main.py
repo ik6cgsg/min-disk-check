@@ -2,11 +2,8 @@ import sys
 
 from min_disk_checker import *
 from point import *
-import time
 
 if __name__ == '__main__':
-    start = time.time()
-
     if len(sys.argv) != 2:
         print("Usage: /path/to/python3.x main.py <data_file>\n"
               "data_file format:\n"
@@ -21,7 +18,6 @@ if __name__ == '__main__':
         for line in file:
             point = Point.create_from_str(line)
             points.append(point)
-        print("POINTS LEN:", len(points))
         file.close()
         mdc = MinDiskChecker()
         print("Is disk minimal? ", mdc.is_disk_minimal(coords, points))
@@ -33,6 +29,3 @@ if __name__ == '__main__':
         print("Point ERROR: " + str(pe))
     except MinDiskCheckerException as me:
         print("MinDiskChecker ERROR: " + str(me))
-
-    end = time.time()
-    print("TIME:", end - start)
