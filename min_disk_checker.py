@@ -6,16 +6,30 @@ class MinDiskCheckerException(Exception):
     pass
 
 
-def det(A) -> int:
-    n, _ = numpy.shape(A)
-    if n == 1:
-        return int(A[0, 0])
-    else:
-        s = 0
-        for i in range(n):
-            l = [x for x in range(n) if x != i]
-            s += (-1) ** i * int(A[0, i]) * det(A[1:, l])
-        return s
+def det3x3(a) -> int:
+    return a[0][0] * (a[1][1] * a[2][2] - a[2][1] * a[1][2]) - \
+           a[1][0] * (a[0][1] * a[2][2] - a[2][1] * a[0][2]) + \
+           a[2][0] * (a[0][1] * a[1][2] - a[1][1] * a[0][2])
+
+
+def det4x4(a) -> int:
+    return a[0][0] * det3x3([
+        [a[1][1], a[1][2], a[1][3]],
+        [a[2][1], a[2][2], a[2][3]],
+        [a[3][1], a[3][2], a[3][3]]
+    ]) - a[0][1] * det3x3([
+        [a[1][0], a[1][2], a[1][3]],
+        [a[2][0], a[2][2], a[2][3]],
+        [a[3][0], a[3][2], a[3][3]]
+    ]) + a[0][2] * det3x3([
+        [a[1][0], a[1][1], a[1][3]],
+        [a[2][0], a[2][1], a[2][3]],
+        [a[3][0], a[3][1], a[3][3]]
+    ]) - a[0][3] * det3x3([
+        [a[1][0], a[1][1], a[1][2]],
+        [a[2][0], a[2][1], a[2][2]],
+        [a[3][0], a[3][1], a[3][2]]
+    ])
 
 
 class MinDiskChecker(object):
@@ -33,13 +47,13 @@ class MinDiskChecker(object):
     # Check middle point of p0p1 side
     def _get_sign_for_3_points(self, p0: Point, p1: Point, p2: Point):
         p = p1 + p0  # doubled middle of p0p1 side
-        matrix = numpy.array([
+        matrix = [
             [p.x ** 2 + p.y ** 2, p.x, p.y, 2],
             [4 * p0.x ** 2 + 4 * p0.y ** 2, 2 * p0.x, 2 * p0.y, 2],
             [4 * p1.x ** 2 + 4 * p1.y ** 2, 2 * p1.x, 2 * p1.y, 2],
             [4 * p2.x ** 2 + 4 * p2.y ** 2, 2 * p2.x, 2 * p2.y, 2],
-        ])  # doubled matrix respectively
-        if det(matrix) < 0:
+        ]  # doubled matrix respectively
+        if det4x4(matrix) < 0:
             self.sign = 1
         else:
             self.sign = -1
@@ -48,22 +62,13 @@ class MinDiskChecker(object):
         p0 = self.edge_points[0]
         p1 = self.edge_points[1]
         p2 = self.edge_points[2]
-        if self.sign is None:
-            self._get_sign_for_3_points(p0, p1, p2)
-        matrix = numpy.array([
+        matrix = [
             [p.x ** 2 + p.y ** 2, p.x, p.y, 1],
             [p0.x ** 2 + p0.y ** 2, p0.x, p0.y, 1],
             [p1.x ** 2 + p1.y ** 2, p1.x, p1.y, 1],
             [p2.x ** 2 + p2.y ** 2, p2.x, p2.y, 1],
-        ])
-        return self.sign * det(matrix) <= 0
-
-    def _inside(self, p: Point) -> bool:
-        if len(self.coords) == 2:
-            return self._inside_for_2_points(p)
-        if len(self.coords) == 3:
-            return self._inside_for_3_points(p)
-        return False
+        ]
+        return self.sign * det4x4(matrix) <= 0
 
     def _is_obtuse_triangle(self) -> bool:
         p0 = self.edge_points[0]
@@ -78,8 +83,16 @@ class MinDiskChecker(object):
 
     def _all_points_inside(self) -> bool:
         self.edge_points = [self.points[i] for i in self.coords]
+        inside = None
+        if len(self.coords) == 2:
+            inside = self._inside_for_2_points
+        elif len(self.coords) == 3:
+            inside = self._inside_for_3_points
+            self._get_sign_for_3_points(self.edge_points[0], self.edge_points[1], self.edge_points[2])
+        else:
+            return False
         for p in self.points:
-            if not self._inside(p):
+            if not inside(p):
                 return False
         return True
 
