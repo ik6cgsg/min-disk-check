@@ -38,6 +38,7 @@ class MinDiskChecker(object):
         self.points: [Point] = []
         self.edge_points: [Point] = []
         self.sign = None
+        self.dets3x3 = None
 
     def _inside_for_2_points(self, p: Point) -> bool:
         p0 = self.edge_points[0]
@@ -58,17 +59,35 @@ class MinDiskChecker(object):
         else:
             self.sign = -1
 
+    def _get_dets_for_3_points(self, p0: Point, p1: Point, p2: Point):
+        p0xy2 = p0.x ** 2 + p0.y ** 2
+        p1xy2 = p1.x ** 2 + p1.y ** 2
+        p2xy2 = p2.x ** 2 + p2.y ** 2
+        self.dets3x3 = []
+        self.dets3x3.append(det3x3([
+            [p0.x, p0.y, 1],
+            [p1.x, p1.y, 1],
+            [p2.x, p2.y, 1]
+        ]))
+        self.dets3x3.append(det3x3([
+            [p0xy2, p0.y, 1],
+            [p1xy2, p1.y, 1],
+            [p2xy2, p2.y, 1]
+        ]))
+        self.dets3x3.append(det3x3([
+            [p0xy2, p0.x, 1],
+            [p1xy2, p1.x, 1],
+            [p2xy2, p2.x, 1]
+        ]))
+        self.dets3x3.append(det3x3([
+            [p0xy2, p0.x, p0.y],
+            [p1xy2, p1.x, p1.y],
+            [p2xy2, p2.x, p2.y]
+        ]))
+
     def _inside_for_3_points(self, p: Point) -> bool:
-        p0 = self.edge_points[0]
-        p1 = self.edge_points[1]
-        p2 = self.edge_points[2]
-        matrix = [
-            [p.x ** 2 + p.y ** 2, p.x, p.y, 1],
-            [p0.x ** 2 + p0.y ** 2, p0.x, p0.y, 1],
-            [p1.x ** 2 + p1.y ** 2, p1.x, p1.y, 1],
-            [p2.x ** 2 + p2.y ** 2, p2.x, p2.y, 1],
-        ]
-        return self.sign * det4x4(matrix) <= 0
+        det = (p.x ** 2 + p.y ** 2) * self.dets3x3[0] - p.x * self.dets3x3[1] + p.y * self.dets3x3[2] - self.dets3x3[3]
+        return self.sign * det <= 0
 
     def _is_obtuse_triangle(self) -> bool:
         p0 = self.edge_points[0]
@@ -89,6 +108,7 @@ class MinDiskChecker(object):
         elif len(self.coords) == 3:
             inside = self._inside_for_3_points
             self._get_sign_for_3_points(self.edge_points[0], self.edge_points[1], self.edge_points[2])
+            self._get_dets_for_3_points(self.edge_points[0], self.edge_points[1], self.edge_points[2])
         else:
             return False
         for p in self.points:
@@ -98,6 +118,7 @@ class MinDiskChecker(object):
 
     def is_disk_minimal(self, coords: [int], points: [Point]) -> bool:
         self.sign = None
+        self.dets3x3 = None
         if len(coords) > len(points):
             raise MinDiskCheckerException("Number of indices is larger then number of points")
         if len(coords) > 3:
